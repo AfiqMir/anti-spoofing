@@ -10,7 +10,7 @@ pinned: false
 
 # Anti Spoofing Web
 
-Website statis untuk demo anti-spoofing. Upload gambar, akses kamera, preprocessing,
+Website statis untuk demo anti-spoofing. Upload gambar, kamera depan/belakang, preprocessing,
 inferensi ONNX, softmax, dan tampilan enam probabilitas seluruhnya berjalan di
 browser pengguna. Dark mode digunakan secara default dan pilihan tema disimpan
 secara lokal oleh browser.

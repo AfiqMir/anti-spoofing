@@ -208,7 +208,8 @@
     display:flex; align-items:center; justify-content:center; overflow:hidden;
   }
   .demo-stage img{width:100%; height:100%; object-fit:cover; opacity:0.9;}
-  .demo-stage video{width:100%; height:100%; object-fit:cover; transform:scaleX(-1);}
+  .demo-stage video{width:100%; height:100%; object-fit:cover;}
+  .demo-stage video.mirrored{transform:scaleX(-1);}
   .demo-stage .placeholder-icon{width:34%; opacity:0.35;}
   .demo-stage .corner{position:absolute; width:22px; height:22px; border:2px solid var(--scan); opacity:0.7;}
   .demo-stage .corner.tl{top:14px; left:14px; border-right:none; border-bottom:none;}
@@ -409,7 +410,8 @@
           <button class="action-btn primary full" id="uploadBtn">Unggah gambar</button>
           <button class="action-btn" id="cameraBtn">Buka kamera</button>
           <button class="action-btn" id="captureBtn" disabled>Ambil foto</button>
-          <button class="action-btn danger full" id="stopCameraBtn" hidden>Tutup kamera</button>
+          <button class="action-btn" id="switchCameraBtn" hidden>Ganti kamera</button>
+          <button class="action-btn danger" id="stopCameraBtn" hidden>Tutup kamera</button>
         </div>
       </div>
 
@@ -552,6 +554,7 @@ const state = {
   modelReady: false,
   modelSession: null,
   cameraStream: null,
+  cameraFacingMode: 'user',
   previewUrl: null,
   busy: false
 };
@@ -563,6 +566,7 @@ const badge = document.getElementById('modelBadge');
 const uploadBtn = document.getElementById('uploadBtn');
 const cameraBtn = document.getElementById('cameraBtn');
 const captureBtn = document.getElementById('captureBtn');
+const switchCameraBtn = document.getElementById('switchCameraBtn');
 const stopCameraBtn = document.getElementById('stopCameraBtn');
 const fileInput = document.getElementById('fileInput');
 const themeToggle = document.getElementById('themeToggle');
@@ -600,6 +604,7 @@ function setBusy(isBusy){
   uploadBtn.disabled = isBusy;
   cameraBtn.disabled = isBusy || Boolean(state.cameraStream);
   captureBtn.disabled = isBusy || !state.cameraStream;
+  switchCameraBtn.disabled = isBusy || !state.cameraStream;
 }
 
 function setModelBadge(ready, message){
@@ -775,39 +780,89 @@ async function runAnalysis(file){
   }
 }
 
+function releaseCameraStream(){
+  state.cameraStream?.getTracks().forEach(track => track.stop());
+  state.cameraStream = null;
+}
+
+async function activateCamera(facingMode){
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: {
+      facingMode: { ideal: facingMode },
+      width: { ideal: 1280 },
+      height: { ideal: 960 }
+    },
+    audio: false
+  });
+
+  state.cameraStream = stream;
+  state.cameraFacingMode = stream.getVideoTracks()[0]?.getSettings().facingMode || facingMode;
+  stage.querySelector('img')?.remove();
+  stage.querySelector('video')?.remove();
+
+  const video = document.createElement('video');
+  video.autoplay = true;
+  video.playsInline = true;
+  video.muted = true;
+  video.classList.toggle('mirrored', state.cameraFacingMode !== 'environment');
+  video.srcObject = stream;
+  stage.insertBefore(video, stage.firstChild);
+  await video.play();
+
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  const cameraCount = devices.filter(device => device.kind === 'videoinput').length;
+  stage.querySelector('.placeholder-icon').style.display = 'none';
+  stageStatus.textContent = state.cameraFacingMode === 'environment'
+    ? 'Kamera belakang aktif — posisikan wajah di tengah frame'
+    : 'Kamera depan aktif — posisikan wajah di tengah frame';
+  cameraBtn.disabled = true;
+  captureBtn.disabled = false;
+  switchCameraBtn.hidden = cameraCount < 2;
+  switchCameraBtn.disabled = false;
+  stopCameraBtn.hidden = false;
+}
+
 async function startCamera(){
   try{
     if(!navigator.mediaDevices?.getUserMedia){
       throw new Error('Browser ini tidak mendukung akses kamera. Jalankan web lewat localhost atau HTTPS.');
     }
-    state.cameraStream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 } },
-      audio: false
-    });
-    stage.querySelector('img')?.remove();
-    const video = document.createElement('video');
-    video.autoplay = true;
-    video.playsInline = true;
-    video.srcObject = state.cameraStream;
-    stage.insertBefore(video, stage.firstChild);
-    stage.querySelector('.placeholder-icon').style.display = 'none';
-    stageStatus.textContent = 'Posisikan wajah di tengah frame';
-    cameraBtn.disabled = true;
-    captureBtn.disabled = false;
-    stopCameraBtn.hidden = false;
+    await activateCamera(state.cameraFacingMode);
   } catch(error){
-    state.cameraStream = null;
+    releaseCameraStream();
     renderError(error.message || 'Izin kamera ditolak');
   }
 }
 
+async function switchCamera(){
+  const previousFacingMode = state.cameraFacingMode;
+  const nextFacingMode = previousFacingMode === 'environment' ? 'user' : 'environment';
+  switchCameraBtn.disabled = true;
+  releaseCameraStream();
+
+  try{
+    await activateCamera(nextFacingMode);
+  } catch(error){
+    releaseCameraStream();
+    stage.querySelector('video')?.remove();
+    try{
+      await activateCamera(previousFacingMode);
+      stageStatus.textContent = 'Kamera lain tidak tersedia pada perangkat ini';
+    } catch(_){
+      stopCamera();
+      renderError(error.message || 'Gagal mengganti kamera');
+    }
+  }
+}
+
 function stopCamera(){
-  state.cameraStream?.getTracks().forEach(track => track.stop());
-  state.cameraStream = null;
+  releaseCameraStream();
   stage.querySelector('video')?.remove();
   if(!stage.querySelector('img')) stage.querySelector('.placeholder-icon').style.display = '';
   cameraBtn.disabled = false;
   captureBtn.disabled = true;
+  switchCameraBtn.hidden = true;
+  switchCameraBtn.disabled = true;
   stopCameraBtn.hidden = true;
   stageStatus.textContent = 'Menunggu input — unggah gambar atau buka kamera';
 }
@@ -819,8 +874,10 @@ function capturePhoto(){
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   const context = canvas.getContext('2d');
-  context.translate(canvas.width, 0);
-  context.scale(-1, 1);
+  if(state.cameraFacingMode !== 'environment'){
+    context.translate(canvas.width, 0);
+    context.scale(-1, 1);
+  }
   context.drawImage(video, 0, 0);
   canvas.toBlob(blob => {
     if(!blob) return renderError('Gagal mengambil frame kamera');
@@ -837,6 +894,7 @@ fileInput.addEventListener('change', event => {
 });
 cameraBtn.addEventListener('click', startCamera);
 captureBtn.addEventListener('click', capturePhoto);
+switchCameraBtn.addEventListener('click', switchCamera);
 stopCameraBtn.addEventListener('click', stopCamera);
 themeToggle.addEventListener('click', () => {
   const currentTheme = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
