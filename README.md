@@ -1,7 +1,7 @@
 # Face Anti-Spoofing
 
 Versi deployment proyek ini berjalan sepenuhnya sebagai **Hugging Face Static
-Space**. Model final Fold 1 telah dikonversi ke ONNX dan inferensi dijalankan
+Space**. Model final telah dikonversi ke ONNX dan inferensi dijalankan
 langsung di browser dengan ONNX Runtime Web. Website publik tidak memerlukan
 server atau layanan komputasi terpisah.
 
