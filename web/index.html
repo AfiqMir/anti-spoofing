@@ -109,7 +109,6 @@
 
   section{position:relative; z-index:1;}
 
-  /* ---------- HERO ---------- */
   .hero{padding:82px 0 92px;}
   .hero-grid{display:grid; grid-template-columns:1.15fr 0.85fr; gap:72px; align-items:center;}
   @media (max-width:900px){ .hero-grid{grid-template-columns:1fr;} }
@@ -138,7 +137,6 @@
   .stat .n{font-family:var(--mono); font-size:24px; font-weight:600; color:var(--text);}
   .stat .l{font-size:12px; color:var(--text-faint); margin-top:2px;}
 
-  /* viewfinder */
   .viewfinder{
     position:relative; aspect-ratio:1/1.05; max-width:380px; margin:0 auto;
     background:var(--visual-bg);
@@ -171,7 +169,6 @@
     .vf-scanline{animation:none;}
   }
 
-  /* ---------- SECTION HEADERS ---------- */
   .sec-head{margin-bottom:44px; max-width:640px;}
   .sec-eyebrow{font-family:var(--mono); font-size:12px; color:var(--text-faint); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:10px;}
   .sec-title{font-family:var(--disp); font-weight:600; font-size:clamp(24px,3vw,34px); letter-spacing:-0.01em;}
@@ -180,7 +177,6 @@
 
   .hr{height:1px; background:linear-gradient(90deg, transparent, var(--border), transparent);}
 
-  /* ---------- PROBLEM ---------- */
   .problem{padding:72px 0;}
   .prob-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
   @media (max-width:800px){ .prob-grid{grid-template-columns:1fr;} }
@@ -189,7 +185,6 @@
   .prob-card .t{font-family:var(--disp); font-size:16px; margin:10px 0 8px;}
   .prob-card .d{font-size:13.5px; color:var(--text-dim);}
 
-  /* ---------- DEMO ---------- */
   .demo{padding:72px 0;}
   .demo-panel{
     background:var(--panel); border:1px solid var(--border); border-radius:12px;
@@ -273,7 +268,6 @@
 
   .empty-state{color:var(--text-faint); font-size:13.5px; font-style:italic; padding:20px 0;}
 
-  /* ---------- PIPELINE ---------- */
   .pipeline{padding:72px 0;}
   .pipe-row{display:flex; align-items:stretch; gap:0; overflow-x:auto; padding-bottom:8px;}
   .pipe-step{
@@ -290,7 +284,6 @@
   .pipe-title{font-family:var(--disp); font-size:14.5px; font-weight:600; margin-bottom:8px;}
   .pipe-desc{font-size:12.5px; color:var(--text-dim); line-height:1.45;}
 
-  /* ---------- DATASET ---------- */
   .dataset{padding:72px 0;}
   .ds-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
   @media (max-width:900px){ .ds-grid{grid-template-columns:repeat(2,1fr);} }
@@ -307,7 +300,6 @@
   .ds-key{font-family:var(--mono); font-size:11px; color:var(--text-faint); margin-bottom:12px;}
   .ds-desc{font-size:13px; color:var(--text-dim); line-height:1.5;}
 
-  /* ---------- FOOTER ---------- */
   footer{padding:56px 0 60px; border-top:1px solid var(--border);}
   .foot-grid{display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:24px;}
   .foot-brand{font-family:var(--disp); font-weight:700; font-size:16px;}
@@ -547,7 +539,6 @@ const CLASS_NAMES = [
   'fake_printed'
 ];
 
-// Urutan kelas, ukuran input, serta normalisasi harus sama dengan notebook final.
 const CLASS_META = {
   realperson:      { label: 'Wajah Asli',          verdict: 'live' },
   fake_unknown:    { label: 'Spoof Tak Dikenal',   verdict: 'spoof' },

@@ -31,9 +31,7 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 
-# ---------------------------------------------------------------------------
 # Konfigurasi — HARUS sama persis dengan notebook training
-# ---------------------------------------------------------------------------
 IMG_SIZE = 384
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 BACKEND_DIR = os.path.dirname(__file__)
@@ -42,8 +40,6 @@ ARCHIVE_MODEL_PATH = os.path.join(BACKEND_DIR, "best_convnext_model.pth")
 EXTRACTED_MODEL_PATH = os.path.join(BACKEND_DIR, "master_convnext_fold1.pth")
 WEB_PATH = os.environ.get("ANTI_SPOOF_WEB_PATH") or os.path.join(PROJECT_DIR, "web", "index.html")
 
-# Bisa dioverride untuk deployment, misalnya:
-# ANTI_SPOOF_MODEL_PATH=/path/ke/checkpoint.pth
 MODEL_PATH = os.environ.get("ANTI_SPOOF_MODEL_PATH") or (
     ARCHIVE_MODEL_PATH if os.path.isfile(ARCHIVE_MODEL_PATH) else EXTRACTED_MODEL_PATH
 )
@@ -51,10 +47,8 @@ CLASSES_PATH = os.path.join(BACKEND_DIR, "classes.json")
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# ---------------------------------------------------------------------------
 # Load urutan kelas — WAJIB dari file classes.json hasil export notebook,
 # JANGAN ditulis ulang manual di sini supaya tidak ada risiko urutan salah.
-# ---------------------------------------------------------------------------
 if not os.path.exists(CLASSES_PATH):
     raise FileNotFoundError(
         f"'{CLASSES_PATH}' tidak ditemukan. Copy file classes.json hasil "
@@ -67,9 +61,6 @@ with open(CLASSES_PATH) as f:
 print(f"Urutan kelas dimuat: {CLASSES}")
 
 
-# ---------------------------------------------------------------------------
-# Arsitektur model — disalin persis dari notebook training
-# ---------------------------------------------------------------------------
 class ConvNeXtModel(nn.Module):
     def __init__(self, num_classes=6, pretrained=False):
         super(ConvNeXtModel, self).__init__()
@@ -81,10 +72,8 @@ class ConvNeXtModel(nn.Module):
         return self.fc(features)
 
 
-# ---------------------------------------------------------------------------
 # Preprocessing — disalin persis dari val_transform di notebook training
 # (Resize -> Normalize ImageNet -> ToTensor, TANPA augmentasi)
-# ---------------------------------------------------------------------------
 val_transform = A.Compose([
     A.Resize(IMG_SIZE, IMG_SIZE),
     A.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225)),
@@ -102,9 +91,6 @@ def preprocess_image(image_bytes: bytes) -> torch.Tensor:
     return tensor.unsqueeze(0)
 
 
-# ---------------------------------------------------------------------------
-# Load model sekali saat startup
-# ---------------------------------------------------------------------------
 model = None
 
 
@@ -167,13 +153,8 @@ def load_model():
     return m
 
 
-# ---------------------------------------------------------------------------
-# FastAPI app
-# ---------------------------------------------------------------------------
 app = FastAPI(title="Anti Spoofing API")
 
-# Deployment memakai same-origin. Origin localhost tetap diizinkan untuk
-# pengembangan ketika frontend dan backend dijalankan pada port berbeda.
 cors_origins = os.environ.get(
     "ANTI_SPOOF_CORS_ORIGINS",
     "http://localhost:5500,http://127.0.0.1:5500",
