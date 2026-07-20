@@ -1,0 +1,7 @@
+.venv/
+__pycache__/
+*.py[cod]
+master_convnext_fold2.pth/
+master_convnext_fold3.pth/
+master_convnext_fold4.pth/
+master_convnext_fold5.pth/

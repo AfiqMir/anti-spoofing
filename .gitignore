@@ -1,0 +1,20 @@
+# Local tooling
+.agents/
+**/.venv/
+**/.vercel/
+**/__pycache__/
+**/*.py[cod]
+
+# Local secrets
+**/.env
+**/.env.*
+!**/.env.example
+
+# Model artifacts disimpan lokal/Hugging Face, bukan di GitHub.
+backend/best_convnext_model.pth
+backend/master_convnext_fold*.pth/
+web/anti_spoof_convnext_fold1.onnx
+
+# OS files
+.DS_Store
+Thumbs.db
