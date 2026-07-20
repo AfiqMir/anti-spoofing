@@ -8,6 +8,6 @@ server atau layanan komputasi terpisah.
 - `web/` berisi halaman siap deploy dan model ONNX final.
 - `backend/` tetap berisi FastAPI untuk pengembangan lokal, checkpoint hasil
   training, dan `export_onnx.py` untuk menghasilkan ulang model browser.
-- Folder Fold q–5 tetap merupakan artefak training final.
+- Folder Fold 1–5 tetap merupakan artefak training final.
 
 Lihat petunjuk deployment pada `web/README.md`.
